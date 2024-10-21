@@ -1,0 +1,10 @@
+node_modules
+public
+src
+.gitignore
+biome.json
+index.html
+pnpm-lock.yaml
+tsconfig.*
+tsup.config.tsconfig
+vite.config.ts
