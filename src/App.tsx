@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Command } from './components/Command'
+import { Options } from './utils/options'
 
 export const App: React.FC = (): React.ReactElement => {
 	const [open, setOpen] = useState<boolean>(false)
@@ -25,6 +26,10 @@ export const App: React.FC = (): React.ReactElement => {
 			setOpen(false)
 		}
 	}
+
+  useEffect(() => {
+    setData(Options)
+  }, [])
 
 	useEffect(() => {
 		if (open && inputRef.current) {
