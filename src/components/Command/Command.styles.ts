@@ -1,4 +1,4 @@
-import styled, { css, keyframes } from 'styled-components'
+import styled, { createGlobalStyle, css, keyframes } from 'styled-components'
 import magnifyingGlass from '../../assets/magnifying-glass.svg'
 
 interface AnimationProps {
@@ -24,6 +24,17 @@ const defaultFadeIn = keyframes`
   }
   100% {
     opacity: 1;
+  }
+`
+
+export const GlobalStyle = createGlobalStyle`
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    outline: none;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+      Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   }
 `
 
@@ -69,7 +80,7 @@ export const CommandLabel = styled.label`
     top: 0;
     bottom: 0px;
     width: 20px;
-    background: url("${magnifyingGlass}") center / contain no-repeat;
+    background: url('${magnifyingGlass}') center / contain no-repeat;
   }
   &:after {
     content: 'esc';
@@ -145,6 +156,11 @@ export const OptionDescription = styled.p`
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
+`
+
+export const OptionAnchor = styled.a`
+  text-decoration: none;
+  color: inherit;
 `
 
 export const CommandFooter = styled.footer`
