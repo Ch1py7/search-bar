@@ -58,8 +58,6 @@ export const Command: React.FC<Command> = ({
 	return (
 		<>
 			{open && (
-				<>
-					<S.GlobalStyle />
 					<S.Container $animation={animation}>
 						<S.Blur $bg={bg} $blur={blur} />
 						<S.CommandContainer>
@@ -97,7 +95,6 @@ export const Command: React.FC<Command> = ({
 							</S.CommandFooter>
 						</S.CommandContainer>
 					</S.Container>
-				</>
 			)}
 		</>
 	)

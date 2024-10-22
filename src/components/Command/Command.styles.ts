@@ -1,4 +1,4 @@
-import styled, { createGlobalStyle, css, keyframes } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 import magnifyingGlass from '../../assets/magnifying-glass.svg'
 
 interface AnimationProps {
@@ -27,17 +27,6 @@ const defaultFadeIn = keyframes`
   }
 `
 
-export const GlobalStyle = createGlobalStyle`
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    outline: none;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
-      Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  }
-`
-
 export const Container = styled.div.attrs<AnimationProps>((props) => ({
   $animation: props.$animation || defaultFadeIn,
 }))`
@@ -49,6 +38,15 @@ export const Container = styled.div.attrs<AnimationProps>((props) => ({
       : css`
           ${props.$animation} 0.2s ease-out
         `};
+
+  & * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    outline: none;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+      Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  }
 `
 
 export const Blur = styled.div.attrs<BlurProps>((props) => ({
