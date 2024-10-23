@@ -40,7 +40,6 @@ export const App: React.FC = (): React.ReactElement => {
 	return (
 		<Command
 			open={open}
-			inputRef={inputRef}
 			value={value}
 			onChange={onChange}
 			options={filteredData}
