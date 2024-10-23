@@ -12,6 +12,7 @@ interface Command {
 	placeholder?: string
 	options?: Option[]
 	onKeyDown?: (e: KeyboardEvent) => any
+	maxItems?: number
 }
 
 interface Option {
@@ -39,6 +40,7 @@ export const Command: React.FC<Command> = ({
 	childrenInput,
 	childrenOptions,
 	onKeyDown,
+	maxItems = 10,
 }): React.ReactElement => {
 	const { animation, bg, blur, inputBg } = {
 		animation: styles?.animation,
@@ -58,27 +60,29 @@ export const Command: React.FC<Command> = ({
 	return (
 		<>
 			{open && (
-					<S.Container $animation={animation}>
-						<S.Blur $bg={bg} $blur={blur} />
-						<S.CommandContainer>
-							{childrenInput ? (
-								childrenInput
-							) : (
-								<S.CommandLabel>
-									<S.CommandInput
-										$inputBg={inputBg}
-										ref={inputRef}
-										placeholder={placeholder}
-										onChange={onChange}
-										value={value}
-									/>
-								</S.CommandLabel>
-							)}
-							{childrenOptions ? (
-								childrenOptions
-							) : (
-								<S.OptionsLimiter>
-									{options?.map((item) => (
+				<S.Container $animation={animation}>
+					<S.Blur $bg={bg} $blur={blur} />
+					<S.CommandContainer>
+						{childrenInput ? (
+							childrenInput
+						) : (
+							<S.CommandLabel>
+								<S.CommandInput
+									$inputBg={inputBg}
+									ref={inputRef}
+									placeholder={placeholder}
+									onChange={onChange}
+									value={value}
+								/>
+							</S.CommandLabel>
+						)}
+						{childrenOptions ? (
+							childrenOptions
+						) : (
+							<S.OptionsLimiter>
+								{options
+									?.slice(maxItems ? 0 : undefined, maxItems ? maxItems : undefined)
+									.map((item) => (
 										<S.OptionAnchor key={item.id} href={item.href}>
 											<S.OptionsContainer key={item.id}>
 												<S.OptionName>{item.name}</S.OptionName>
@@ -86,15 +90,15 @@ export const Command: React.FC<Command> = ({
 											</S.OptionsContainer>
 										</S.OptionAnchor>
 									))}
-								</S.OptionsLimiter>
-							)}
-							<S.CommandFooter>
-								<p>
-									Made with <S.CommandFooterSpan>♥️</S.CommandFooterSpan> by Gerardo Garcia
-								</p>
-							</S.CommandFooter>
-						</S.CommandContainer>
-					</S.Container>
+							</S.OptionsLimiter>
+						)}
+						<S.CommandFooter>
+							<p>
+								Made with <S.CommandFooterSpan>♥️</S.CommandFooterSpan> by Gerardo Garcia
+							</p>
+						</S.CommandFooter>
+					</S.CommandContainer>
+				</S.Container>
 			)}
 		</>
 	)
