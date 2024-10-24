@@ -1,11 +1,13 @@
 import { useModal } from '@/hooks/useModal'
-import { useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import * as S from './Command.styles'
 
 interface Command {
-	open: boolean
-	onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
+	open?: boolean
+	setOpen?: React.Dispatch<React.SetStateAction<boolean>>
 	value?: string
+	setValue?: React.Dispatch<React.SetStateAction<string>>
+	onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
 	childrenOptions?: React.ReactNode
 	childrenInput?: React.ReactNode
 	styles?: Styles
@@ -13,6 +15,7 @@ interface Command {
 	options?: Option[]
 	onKeyDown?: (e: KeyboardEvent) => any
 	maxItems?: number
+	basicFilter?: boolean
 }
 
 export interface Option {
@@ -45,19 +48,26 @@ export interface Styles {
 	commandFooterClassNames?: string
 	commandFooterSpanStyles?: React.CSSProperties
 	commandFooterSpanClassNames?: string
+	emptyResultsStyles?: React.CSSProperties
+	emptyResultsClassNames?: string
+	emptyResultsSpanStyles?: React.CSSProperties
+	emptyResultsSpanClassNames?: string
 }
 
 export const Command: React.FC<Command> = ({
 	open,
+	setOpen,
 	onKeyDown,
 	onChange,
 	value,
+	setValue,
 	styles,
 	placeholder = 'Search',
-	options,
+	options = [],
 	childrenInput,
 	childrenOptions,
 	maxItems = 10,
+	basicFilter = true,
 }): React.ReactElement => {
 	const {
 		dialogStyles,
@@ -82,6 +92,10 @@ export const Command: React.FC<Command> = ({
 		commandFooterClassNames,
 		commandFooterSpanStyles,
 		commandFooterSpanClassNames,
+		emptyResultsStyles,
+		emptyResultsClassNames,
+		emptyResultsSpanStyles,
+		emptyResultsSpanClassNames,
 	} = {
 		dialogStyles: styles?.dialogStyles,
 		dialogClassNames: styles?.dialogClassNames,
@@ -105,17 +119,49 @@ export const Command: React.FC<Command> = ({
 		commandFooterClassNames: styles?.commandFooterClassNames,
 		commandFooterSpanStyles: styles?.commandFooterSpanStyles,
 		commandFooterSpanClassNames: styles?.commandFooterSpanClassNames,
+		emptyResultsStyles: styles?.emptyResultsStyles,
+		emptyResultsClassNames: styles?.emptyResultsClassNames,
+		emptyResultsSpanStyles: styles?.emptyResultsSpanStyles,
+		emptyResultsSpanClassNames: styles?.emptyResultsSpanClassNames,
 	}
+	const [searchBarOpen, setSearchBarOpen] = useState<boolean>(false)
+	const [searchBarValue, setSearchBarValue] = useState<string>('')
 
-	const { modalRef } = useModal(open)
+	const { modalRef } = useModal(open ? open : searchBarOpen, setOpen ? setOpen : setSearchBarOpen)
+
+	const searchBarOnChange = useCallback(
+		(event: React.ChangeEvent<HTMLInputElement>) => {
+			const { value } = event.target
+			setValue ? setValue(value) : setSearchBarValue(value)
+		},
+		[setValue]
+	)
+
+	const filteredOptions = useMemo(() => {
+		return value || searchBarValue
+			? options.filter((d) =>
+					d.name.toLowerCase().includes(value?.toLowerCase() || searchBarValue.toLowerCase())
+				)
+			: options
+	}, [value, searchBarValue, options])
 
 	useEffect(() => {
-		if (!onKeyDown) return
-		window.addEventListener('keydown', onKeyDown)
-		return () => {
-			window.removeEventListener('keydown', onKeyDown)
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event?.key === 'k' && (event.metaKey || event.ctrlKey)) {
+				event.preventDefault()
+				setOpen ? setOpen((prev) => !prev) : setSearchBarOpen((prev) => !prev)
+			} else if (event.key === 'Escape') {
+				event.preventDefault()
+				setOpen ? setOpen(false) : setSearchBarOpen(false)
+			}
 		}
-	}, [onKeyDown])
+
+		window.addEventListener('keydown', onKeyDown ? onKeyDown : handleKeyDown)
+
+		return () => {
+			window.removeEventListener('keydown', onKeyDown ? onKeyDown : handleKeyDown)
+		}
+	}, [onKeyDown, setOpen])
 	return (
 		<S.Dialog ref={modalRef} style={dialogStyles} className={dialogClassNames}>
 			<S.CommandContainer style={commandContainerStyles} className={commandContainerClassNames}>
@@ -127,8 +173,8 @@ export const Command: React.FC<Command> = ({
 							style={commandInputStyles}
 							className={commandInputClassNames}
 							placeholder={placeholder}
-							onChange={onChange}
-							value={value}
+							onChange={onChange ? onChange : searchBarOnChange}
+							value={value || searchBarValue}
 						/>
 					</S.CommandLabel>
 				)}
@@ -136,32 +182,85 @@ export const Command: React.FC<Command> = ({
 					childrenOptions
 				) : (
 					<S.OptionsLimiter style={optionsLimiterStyles} className={optionsLimiterClassNames}>
-						{options
-							?.slice(maxItems ? 0 : undefined, maxItems ? maxItems : undefined)
-							.map((item) => (
-								<S.OptionAnchor
-									style={optionAnchorStyles}
-									className={optionAnchorClassNames}
-									key={item.id}
-									href={item.href}
-								>
-									<S.OptionsContainer
-										style={optionsContainerStyles}
-										className={optionsContainerClassNames}
-										key={item.id}
-									>
-										<S.OptionName style={optionNameStyles} className={optionNameClassNames}>
-											{item.name}
-										</S.OptionName>
-										<S.OptionDescription
-											style={optionDescriptionStyles}
-											className={optionDescriptionClassNames}
+						{basicFilter ? (
+							filteredOptions.length > 0 ? (
+								filteredOptions
+									.slice(maxItems ? 0 : undefined, maxItems ? maxItems : undefined)
+									.map((item) => (
+										<S.OptionAnchor
+											style={optionAnchorStyles}
+											className={optionAnchorClassNames}
+											key={item.id}
+											href={item.href}
 										>
-											{item.description}
-										</S.OptionDescription>
-									</S.OptionsContainer>
-								</S.OptionAnchor>
-							))}
+											<S.OptionsContainer
+												style={optionsContainerStyles}
+												className={optionsContainerClassNames}
+												key={item.id}
+											>
+												<S.OptionName style={optionNameStyles} className={optionNameClassNames}>
+													{item.name}
+												</S.OptionName>
+												<S.OptionDescription
+													style={optionDescriptionStyles}
+													className={optionDescriptionClassNames}
+												>
+													{item.description}
+												</S.OptionDescription>
+											</S.OptionsContainer>
+										</S.OptionAnchor>
+									))
+							) : (
+								<S.EmptyResults style={emptyResultsStyles} className={emptyResultsClassNames}>
+									No results for "
+									<S.EmptyResultsSpan
+										style={emptyResultsSpanStyles}
+										className={emptyResultsSpanClassNames}
+									>
+										{value ? value : searchBarValue}
+									</S.EmptyResultsSpan>
+									"
+								</S.EmptyResults>
+							)
+						) : options.length > 0 ? (
+							options
+								.slice(maxItems ? 0 : undefined, maxItems ? maxItems : undefined)
+								.map((item) => (
+									<S.OptionAnchor
+										style={optionAnchorStyles}
+										className={optionAnchorClassNames}
+										key={item.id}
+										href={item.href}
+									>
+										<S.OptionsContainer
+											style={optionsContainerStyles}
+											className={optionsContainerClassNames}
+											key={item.id}
+										>
+											<S.OptionName style={optionNameStyles} className={optionNameClassNames}>
+												{item.name}
+											</S.OptionName>
+											<S.OptionDescription
+												style={optionDescriptionStyles}
+												className={optionDescriptionClassNames}
+											>
+												{item.description}
+											</S.OptionDescription>
+										</S.OptionsContainer>
+									</S.OptionAnchor>
+								))
+						) : (
+							<S.EmptyResults style={emptyResultsStyles} className={emptyResultsClassNames}>
+								No results for "
+								<S.EmptyResultsSpan
+									style={emptyResultsSpanStyles}
+									className={emptyResultsSpanClassNames}
+								>
+									{value ? value : searchBarValue}
+								</S.EmptyResultsSpan>
+								"
+							</S.EmptyResults>
+						)}
 					</S.OptionsLimiter>
 				)}
 				<S.CommandFooter style={commandFooterStyles} className={commandFooterClassNames}>
