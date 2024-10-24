@@ -1,5 +1,10 @@
 import { useModal } from '@/hooks/useModal'
+import { handleKeyDown } from '@/utils/handlerChange'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { CommandFooter } from '../CommandFooter'
+import { CommandInput } from '../CommandInput'
+import { CommandOptions } from '../CommandOptions'
+import { EmptyResults } from '../EmptyResults'
 import * as S from './Command.styles'
 
 interface Command {
@@ -140,141 +145,71 @@ export const Command: React.FC<Command> = ({
 	const filteredOptions = useMemo(() => {
 		return value || searchBarValue
 			? options.filter((d) =>
-					d.name.toLowerCase().includes(value?.toLowerCase() || searchBarValue.toLowerCase())
+					d.name
+						.toLowerCase()
+						.includes(value?.toLowerCase().trim() || searchBarValue.toLowerCase().trim())
 				)
 			: options
 	}, [value, searchBarValue, options])
 
-	useEffect(() => {
-		const handleKeyDown = (event: KeyboardEvent) => {
-			if (event?.key === 'k' && (event.metaKey || event.ctrlKey)) {
-				event.preventDefault()
-				setOpen ? setOpen((prev) => !prev) : setSearchBarOpen((prev) => !prev)
-			} else if (event.key === 'Escape') {
-				event.preventDefault()
-				setOpen ? setOpen(false) : setSearchBarOpen(false)
-			}
-		}
+	const controlledOptions = basicFilter ? filteredOptions : options
 
-		window.addEventListener('keydown', onKeyDown ? onKeyDown : handleKeyDown)
+	useEffect(() => {
+		const handleKey = onKeyDown ? onKeyDown : handleKeyDown(setSearchBarOpen, setOpen)
+
+		window.addEventListener('keydown', handleKey)
 
 		return () => {
-			window.removeEventListener('keydown', onKeyDown ? onKeyDown : handleKeyDown)
+			window.removeEventListener('keydown', handleKey)
 		}
-	}, [onKeyDown, setOpen])
+	}, [setOpen, onKeyDown])
 	return (
 		<S.Dialog ref={modalRef} style={dialogStyles} className={dialogClassNames}>
 			<S.CommandContainer style={commandContainerStyles} className={commandContainerClassNames}>
-				{childrenInput ? (
-					childrenInput
+				<CommandInput
+					commandInputClassNames={commandInputClassNames}
+					commandInputStyles={commandInputStyles}
+					commandLabelClassNames={commandLabelClassNames}
+					commandLabelStyles={commandLabelStyles}
+					placeholder={placeholder}
+					searchBarOnChange={searchBarOnChange}
+					searchBarValue={searchBarValue}
+					value={value}
+					onChange={onChange}
+					childrenInput={childrenInput}
+				/>
+				{controlledOptions.length > 0 ? (
+					<CommandOptions
+						optionsLimiterStyles={optionsLimiterStyles}
+						optionsLimiterClassNames={optionsLimiterClassNames}
+						controlledOptions={controlledOptions}
+						maxItems={maxItems}
+						optionAnchorStyles={optionAnchorStyles}
+						optionAnchorClassNames={optionAnchorClassNames}
+						optionsContainerStyles={optionsContainerStyles}
+						optionsContainerClassNames={optionsContainerClassNames}
+						optionNameStyles={optionNameStyles}
+						optionNameClassNames={optionNameClassNames}
+						optionDescriptionStyles={optionDescriptionStyles}
+						optionDescriptionClassNames={optionDescriptionClassNames}
+						childrenOptions={childrenOptions}
+					/>
 				) : (
-					<S.CommandLabel style={commandLabelStyles} className={commandLabelClassNames}>
-						<S.CommandInput
-							style={commandInputStyles}
-							className={commandInputClassNames}
-							placeholder={placeholder}
-							onChange={onChange ? onChange : searchBarOnChange}
-							value={value || searchBarValue}
-						/>
-					</S.CommandLabel>
+					<EmptyResults
+						emptyResultsClassNames={emptyResultsClassNames}
+						emptyResultsSpanClassNames={emptyResultsSpanClassNames}
+						emptyResultsSpanStyles={emptyResultsSpanStyles}
+						emptyResultsStyles={emptyResultsStyles}
+						searchBarValue={searchBarValue}
+						value={value}
+					/>
 				)}
-				{childrenOptions ? (
-					childrenOptions
-				) : (
-					<S.OptionsLimiter style={optionsLimiterStyles} className={optionsLimiterClassNames}>
-						{basicFilter ? (
-							filteredOptions.length > 0 ? (
-								filteredOptions
-									.slice(maxItems ? 0 : undefined, maxItems ? maxItems : undefined)
-									.map((item) => (
-										<S.OptionAnchor
-											style={optionAnchorStyles}
-											className={optionAnchorClassNames}
-											key={item.id}
-											href={item.href}
-										>
-											<S.OptionsContainer
-												style={optionsContainerStyles}
-												className={optionsContainerClassNames}
-												key={item.id}
-											>
-												<S.OptionName style={optionNameStyles} className={optionNameClassNames}>
-													{item.name}
-												</S.OptionName>
-												<S.OptionDescription
-													style={optionDescriptionStyles}
-													className={optionDescriptionClassNames}
-												>
-													{item.description}
-												</S.OptionDescription>
-											</S.OptionsContainer>
-										</S.OptionAnchor>
-									))
-							) : (
-								<S.EmptyResults style={emptyResultsStyles} className={emptyResultsClassNames}>
-									No results for "
-									<S.EmptyResultsSpan
-										style={emptyResultsSpanStyles}
-										className={emptyResultsSpanClassNames}
-									>
-										{value ? value : searchBarValue}
-									</S.EmptyResultsSpan>
-									"
-								</S.EmptyResults>
-							)
-						) : options.length > 0 ? (
-							options
-								.slice(maxItems ? 0 : undefined, maxItems ? maxItems : undefined)
-								.map((item) => (
-									<S.OptionAnchor
-										style={optionAnchorStyles}
-										className={optionAnchorClassNames}
-										key={item.id}
-										href={item.href}
-									>
-										<S.OptionsContainer
-											style={optionsContainerStyles}
-											className={optionsContainerClassNames}
-											key={item.id}
-										>
-											<S.OptionName style={optionNameStyles} className={optionNameClassNames}>
-												{item.name}
-											</S.OptionName>
-											<S.OptionDescription
-												style={optionDescriptionStyles}
-												className={optionDescriptionClassNames}
-											>
-												{item.description}
-											</S.OptionDescription>
-										</S.OptionsContainer>
-									</S.OptionAnchor>
-								))
-						) : (
-							<S.EmptyResults style={emptyResultsStyles} className={emptyResultsClassNames}>
-								No results for "
-								<S.EmptyResultsSpan
-									style={emptyResultsSpanStyles}
-									className={emptyResultsSpanClassNames}
-								>
-									{value ? value : searchBarValue}
-								</S.EmptyResultsSpan>
-								"
-							</S.EmptyResults>
-						)}
-					</S.OptionsLimiter>
-				)}
-				<S.CommandFooter style={commandFooterStyles} className={commandFooterClassNames}>
-					<p>
-						Made with{' '}
-						<S.CommandFooterSpan
-							style={commandFooterSpanStyles}
-							className={commandFooterSpanClassNames}
-						>
-							♥️
-						</S.CommandFooterSpan>{' '}
-						by Gerardo Garcia
-					</p>
-				</S.CommandFooter>
+				<CommandFooter
+					commandFooterStyles={commandFooterStyles}
+					commandFooterClassNames={commandFooterClassNames}
+					commandFooterSpanStyles={commandFooterSpanStyles}
+					commandFooterSpanClassNames={commandFooterSpanClassNames}
+				/>
 			</S.CommandContainer>
 		</S.Dialog>
 	)
