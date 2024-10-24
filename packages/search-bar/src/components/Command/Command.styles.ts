@@ -65,7 +65,8 @@ export const CommandInput = styled.input`
   border-radius: 14px 14px 0 0;
   font-size: 1rem;
   width: 48rem;
-  border: 1px solid #9ca3af;
+  border: 0;
+  border-bottom: 1px solid #9ca3af;
   color: #181818;
 `
 
@@ -100,7 +101,7 @@ export const OptionsContainer = styled.div`
 
 export const OptionsLimiter = styled.div`
   max-height: 500px;
-  overflow-y: scroll;
+  overflow-y: auto;
   background-color: white;
   padding: 0 8px;
 `
@@ -136,6 +137,8 @@ export const CommandFooter = styled.footer`
   padding: 8px 0;
   background-color: white;
   border-radius: 0 0 14px 14px;
+  border: 0;
+  border-top: 1px solid #9ca3af;
   color: #181818;
 `
 
@@ -148,4 +151,16 @@ export const CommandFooterSpan = styled.span`
     transform: scale(1.2);
     text-shadow: 0 0 0.6rem #f00;
   }
+`
+
+export const EmptyResults = styled.p`
+  text-align: center;
+  padding: 24px 0;
+  font-weight: 600;
+  color: #999
+`
+
+export const EmptyResultsSpan = styled.span`
+  font-weight: 600;
+  color: #181818
 `
